@@ -1,0 +1,87 @@
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
+namespace newbuildgame
+{
+    public class AutoTile
+    {
+        // A frame value for every possible bitmask
+        private static readonly int[] autoTileTable =
+        {
+            11, 11, 31, 31, 11, 11, 31, 31, 30, 30, 21, 26, 30, 30, 21, 26,
+            28, 28, 20, 20, 28, 28, 24, 24, 29, 29, 27, 40, 29, 29, 41, 25,
+            11, 11, 31, 31, 11, 11, 31, 31, 30, 30, 21, 26, 30, 30, 21, 26,
+            28, 28, 20, 20, 28, 28, 24, 24, 29, 29, 27, 40, 29, 29, 41, 25,
+            15, 15, 23, 23, 15, 15, 23, 23, 13, 13, 19, 35, 13, 13, 19, 35,
+            12, 12, 22, 22, 12, 12, 34, 34, 14, 14, 07, 47, 14, 14, 46, 01,
+            15, 15, 23, 23, 15, 15, 23, 23, 10, 10, 43, 18, 10, 10, 43, 18,
+            12, 12, 22, 22, 12, 12, 34, 34, 32, 32, 39, 03, 32, 32, 06, 45,
+            11, 11, 31, 31, 11, 11, 31, 31, 30, 30, 21, 26, 30, 30, 21, 26,
+            28, 28, 20, 20, 28, 28, 24, 24, 29, 29, 27, 40, 29, 29, 41, 25,
+            11, 11, 31, 31, 11, 11, 31, 31, 30, 30, 21, 26, 30, 30, 21, 26,
+            28, 28, 20, 20, 28, 28, 24, 24, 29, 29, 27, 40, 29, 29, 41, 25,
+            15, 15, 23, 23, 15, 15, 23, 23, 13, 13, 19, 35, 13, 13, 19, 35,
+            08, 08, 42, 42, 08, 08, 16, 16, 33, 33, 38, 05, 33, 33, 04, 44,
+            15, 15, 23, 23, 15, 15, 23, 23, 10, 10, 43, 18, 10, 10, 43, 18,
+            08, 08, 42, 42, 08, 08, 16, 16, 09, 09, 02, 37, 09, 09, 36, 17
+        };
+
+        public readonly Texture2D Texture;
+        public readonly int TileWidth, TileHeight;
+
+        private readonly int _framesPerRow;
+
+        public AutoTile(Texture2D texture, int tileWidth, int tileHeight)
+        {
+            Texture = texture;
+
+            TileWidth = tileWidth;
+            TileHeight = tileHeight;
+
+            _framesPerRow = texture.Width / tileWidth;
+        }
+
+        private static int AutoTileTest(TileWorld tileWorld, int x, int y)
+        {
+            return tileWorld.GetTile(x, y) == 0 ? 0 : 1;
+        }
+
+        public void Draw(SpriteBatch spriteBatch, TileWorld tileWorld, int x, int y)
+        {
+            var id = tileWorld.GetTile(x, y);
+
+            // Return if the tile is empty
+            if (id == 0)
+                return;
+
+            // Create a bitmask based on neighboring tiles
+            int bitmask = 0;
+            
+            bitmask |= AutoTileTest(tileWorld, x - 1, y - 1) << 0;
+            bitmask |= AutoTileTest(tileWorld, x, y - 1) << 1;
+            bitmask |= AutoTileTest(tileWorld, x + 1, y - 1) << 2;
+
+            bitmask |= AutoTileTest(tileWorld, x - 1, y) << 3;
+            bitmask |= AutoTileTest(tileWorld, x + 1, y) << 4;
+
+            bitmask |= AutoTileTest(tileWorld, x - 1, y + 1) << 5;
+            bitmask |= AutoTileTest(tileWorld, x, y + 1) << 6;
+            bitmask |= AutoTileTest(tileWorld, x + 1, y + 1) << 7;
+
+            // Unit size destination
+            var destinationRectangle = new Rectangle(x, y, 1, 1);
+
+            // Get the autotile frame from the lookup table
+            var frame = autoTileTable[bitmask];
+
+            // Get the frame's rectangle row-by-row
+            var sourceRectangle =
+                new Rectangle(
+                    (frame % _framesPerRow) * TileWidth,
+                    (frame / _framesPerRow) * TileHeight,
+                    TileWidth, TileHeight);
+
+            spriteBatch.Draw(Texture, destinationRectangle, sourceRectangle, Color.White);
+        }
+    }
+}
